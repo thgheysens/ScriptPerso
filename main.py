@@ -4,6 +4,12 @@ from reschearch import load_csv, search_product, generate_summary, sort_data, ex
 
 
 def main():
+    """
+    PRE: Les fonctions load_csv, equality_check, search_product, generate_summary, sort_data, export_data et interactive_mode sont implémenter correctement.
+         Les librairie os et argparse sont bien importées.
+    POST:utilise la bibliothèque argparse pour gérer les lignes de commandes, traite les données pour les montrées à l'utilisateur via des print
+         Si aucun argument n'est passé, le mode interactif est activé par la fonction interactive_mode
+    """
     parser = argparse.ArgumentParser(description="Gestionnaire d'inventaire via ligne de commande.")
     parser.add_argument("--load", help="Chemin du dossier contenant les fichiers CSV à charger.")
     parser.add_argument("--search", help="Rechercher un produit par son nom.")
@@ -86,6 +92,12 @@ def main():
                 print(row)
 
 def interactive_mode():
+    """
+    PRE: Les fonctions load_csv, equality_check, search_product, generate_summary, sort_data, export_data et interactive_mode sont implémenter correctement.
+         Les librairie os et argparse sont bien importées.
+         Les fichiers CSV doivent contenir des données bien structurées. 
+    POST:L'interaction utilisateur détermine les opérations exécutées : importation, tri, recherche, résumé, exportation ou affichage des données.
+    """
     inventory_data = []
     header = []
 
