@@ -1,7 +1,91 @@
 import os
+import argparse
 from reschearch import load_csv, search_product, generate_summary, sort_data, export_data, equality_check
 
+
 def main():
+    parser = argparse.ArgumentParser(description="Gestionnaire d'inventaire via ligne de commande.")
+    parser.add_argument("--load", help="Chemin du dossier contenant les fichiers CSV à charger.")
+    parser.add_argument("--search", help="Rechercher un produit par son nom.")
+    parser.add_argument("--summary", action="store_true", help="Générer un résumé par catégorie.")
+    parser.add_argument("--sort", type=int, choices=[0, 1, 2], help="Trier les données : 0 pour nom, 1 pour quantité, 2 pour prix.")
+    parser.add_argument("--reverse", action="store_true", help="Trier dans l'ordre décroissant.")
+    parser.add_argument("--export", help="Chemin du fichier où exporter les données consolidées.")
+    parser.add_argument("--display", action="store_true", help="Afficher toutes les données chargées.")
+
+    args = parser.parse_args()
+
+    # Mode interactif si aucun argument n'est fourni
+    if not any(vars(args).values()):  # Vérifie si aucun argument n'est passé
+        interactive_mode()
+        return
+
+    inventory_data = []
+    header = []
+
+    if args.load:
+        folder = args.load
+        try:
+            files = [f for f in os.listdir(folder) if f.endswith('.csv')]
+            if not files:
+                print(f"Aucun fichier CSV trouvé dans le dossier spécifié ({folder})")
+            for file in files:
+                file_path = os.path.join(folder, file)
+                print(f"Traitement du fichier : {file_path}...")
+                new_header, new_data = load_csv(file_path)
+
+                if header and not equality_check(header, new_header):
+                    print(f"Les en-têtes du fichier {file} ne correspondent pas à celles chargées précédemment. Fichier ignoré.")
+                    continue
+
+                if not header:
+                    header = new_header
+                inventory_data.extend(new_data)
+            print("Tous les fichiers CSV ont été chargés avec succès.")
+        except FileNotFoundError as e:
+            print(f"Erreur : {e}")
+
+    if args.search:
+        product_name = args.search
+        found_products = search_product(inventory_data, product_name)
+        if found_products:
+            print("Résultats de la recherche :")
+            for product in found_products:
+                print(product)
+        else:
+            print("Aucun produit correspondant trouvé.")
+
+    if args.summary:
+        summary = generate_summary(inventory_data)
+        print("Résumé des stocks par catégorie :")
+        for category, stats in summary.items():
+            print(f"Catégorie : {category} | Quantité totale : {stats['total_quantity']} | Prix moyen : {stats['average_price']:.2f}")
+
+    if args.sort is not None:
+        column_choice = args.sort
+        reverse = args.reverse
+
+        if column_choice in [0, 1, 2]:
+            sorted_data = sort_data(inventory_data, column_choice, reverse)
+            print("Les données ont été triées avec succès.")
+            inventory_data = sorted_data
+        else:
+            print("Choix invalide pour le tri.")
+
+    if args.export:
+        export_path = args.export
+        export_data(export_path, inventory_data, header)
+        print(f"Les données ont été exportées dans le fichier : {export_path}.")
+
+    if args.display:
+        if not inventory_data:
+            print("L'inventaire est vide, aucune donnée à afficher.")
+        else:
+            print("\nEn-tête :", header)
+            for row in inventory_data:
+                print(row)
+
+def interactive_mode():
     inventory_data = []
     header = []
 
